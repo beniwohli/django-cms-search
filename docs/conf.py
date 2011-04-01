@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'django-cms-search'
-copyright = u'2011, Benjamin Wohlwend'
+copyright = u'2011, Divio GmbH'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -199,5 +199,6 @@ intersphinx_mapping = {
     'python': ('http://docs.python.org/', None),
     'haystack': ('http://docs.haystacksearch.org/dev/', 'http://docs.haystacksearch.org/dev/objects.inv'),
     'django': ('http://docs.djangoproject.com/en/1.3/', 'http://docs.djangoproject.com/en/1.3/_objects/'),
+    'cms': ('http://docs.django-cms.org/en/latest/', None),
 }
 
