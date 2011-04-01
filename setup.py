@@ -4,6 +4,8 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'setuptools',
+    'django-cms>=2.1.3',
+    'django-classy-tags>=0.3.2',
 ]
 
 setup(
