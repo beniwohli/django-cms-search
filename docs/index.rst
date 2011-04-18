@@ -12,7 +12,7 @@ After installing django-cms-search through your package manager of choice, add
 :mod:`cms_search` to your :setting:`INSTALLED_APPS`. That's it.
 
 For setting up Haystack, please refer to their
-`documentation <http://docs.haystacksearch.org/dev/>`_.
+`documentation <http://readthedocs.org/docs/django-haystack/en/latest/>`_.
 
 Customizing the Index
 ---------------------

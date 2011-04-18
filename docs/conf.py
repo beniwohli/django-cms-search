@@ -198,8 +198,8 @@ latex_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'python': ('http://docs.python.org/', None),
-    'haystack': ('http://docs.haystacksearch.org/dev/', 'http://docs.haystacksearch.org/dev/objects.inv'),
-    'django': ('http://docs.djangoproject.com/en/1.3/', 'http://docs.djangoproject.com/en/1.3/_objects/'),
-    'cms': ('http://docs.django-cms.org/en/latest/', None),
+    'haystack': ('http://readthedocs.org/docs/django-haystack/en/latest/', None),
+    'django': ('http://readthedocs.org/docs/django/en/latest/', None),
+    'cms': ('http://readthedocs.org/docs/django-cms/en/2.1.3/', None),
 }
 
