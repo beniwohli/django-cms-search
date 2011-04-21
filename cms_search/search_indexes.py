@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode
 from django.utils.html import strip_tags
+from django.utils.translation import get_language, activate
+
 try:
     import importlib
 except ImportError:
@@ -37,17 +39,22 @@ def page_index_factory(language_code, proxy_model):
         title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
 
         def prepare(self, obj):
-            self.prepared_data = super(_PageIndex, self).prepare(obj)
-            plugins = CMSPlugin.objects.filter(language=language_code, placeholder__in=obj.placeholders.all())
-            text = ''
-            for plugin in plugins:
-                instance, _ = plugin.get_plugin_instance()
-                if hasattr(instance, 'search_fields'):
-                    text += u''.join(force_unicode(strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
-                if getattr(instance, 'search_fulltext', False):
-                    text += strip_tags(instance.render_plugin())
-            self.prepared_data['text'] = text
-            return self.prepared_data
+            current_languge = get_language()
+            try:
+                activate(self.language)
+                self.prepared_data = super(_PageIndex, self).prepare(obj)
+                plugins = CMSPlugin.objects.filter(language=language_code, placeholder__in=obj.placeholders.all())
+                text = ''
+                for plugin in plugins:
+                    instance, _ = plugin.get_plugin_instance()
+                    if hasattr(instance, 'search_fields'):
+                        text += u''.join(force_unicode(strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
+                    if getattr(instance, 'search_fulltext', False):
+                        text += strip_tags(instance.render_plugin())
+                self.prepared_data['text'] = text
+                return self.prepared_data
+            finally:
+                activate(current_languge)
 
         def get_queryset(self):
             qs = proxy_model.objects.published().filter(title_set__language=language_code).distinct()
