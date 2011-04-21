@@ -1,16 +1,33 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode
 from django.utils.html import strip_tags
+try:
+    import importlib
+except ImportError:
+    from django.utils import importlib
 
 from haystack import indexes, site
 
 from cms.models.pluginmodel import CMSPlugin
 
 from cms_search import models as proxy_models
+from cms_search import settings as search_settings
+
+def _get_index_base():
+    index_string = search_settings.INDEX_BASE_CLASS
+    module, class_name = index_string.rsplit('.', 1)
+    mod = importlib.import_module(module)
+    base_class = getattr(mod, class_name, None)
+    if not base_class:
+        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: module %s has no class %s' % (module, class_name))
+    if not issubclass(base_class, indexes.SearchIndex):
+        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s is not a subclass of haystack.indexes.SearchIndex' % search_settings.INDEX_BASE_CLASS)
+    return base_class
 
 def page_index_factory(language_code, proxy_model):
 
-    class _PageIndex(indexes.SearchIndex):
+    class _PageIndex(_get_index_base()):
         language = language_code
 
         text = indexes.CharField(document=True, use_template=False)
