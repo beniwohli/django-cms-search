@@ -130,3 +130,16 @@ language (in the order defined in :setting:`django:LANGUAGES`). Example:
 
     If you plan to use this template tag, you have to add
     :mod:`cms_search.search_helpers` to your :setting:`django:INSTALLED_APPS`.
+
+
+Settings
+========
+.. setting: CMS_SEARCH_INDEX_BASE_CLASS
+
+CMS_SEARCH_INDEX_BASE_CLASS
+---------------------------
+Default: :class:`haystack.indexes.SearchIndex <haystack:SearchIndex>`
+
+This setting can be used to add custom fields to the search index if the
+included fields do not suffice. Make sure to provide the full path
+to your :class:`haystack:SearchIndex` subclass.
