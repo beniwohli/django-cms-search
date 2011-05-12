@@ -28,7 +28,7 @@ class MultiLanguageIndexBase(indexes.DeclarativeMetaclass):
         if model_attr:
             model_attr += '_%s' % language.replace('-', '_')
         arg_names = inspect.getargspec(indexes.SearchField.__init__)[0][2:]
-        kwargs = dict((arg_name, getattr(field, arg_name)) for arg_name in arg_names)
+        kwargs = dict((arg_name, getattr(field, arg_name)) for arg_name in arg_names if hasattr(field, arg_name))
         kwargs['model_attr'] = model_attr
         copy = field.__class__(**kwargs)
         copy.null = True
