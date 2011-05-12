@@ -33,7 +33,7 @@ def page_index_factory(language_code, proxy_model):
         language = language_code
 
         text = indexes.CharField(document=True, use_template=False)
-        pub_date = indexes.DateTimeField(model_attr='publication_date')
+        pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
         login_required = indexes.BooleanField(model_attr='login_required')
         url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
         title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
