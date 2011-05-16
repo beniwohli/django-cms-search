@@ -52,7 +52,8 @@ class GetTransFieldTag(AsTag):
             return self.EMPTY_VALUE
 
     def get_translated_value(self, obj, field_name, language):
-        value = getattr(obj, '%s_%s' % (field_name, language), '')
+        safe_lang = language.replace('-', '_')
+        value = getattr(obj, '%s_%s' % (field_name, safe_lang), '')
         if self._is_truthy(value):
             return value
         else:
