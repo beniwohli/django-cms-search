@@ -48,6 +48,7 @@ def page_index_factory(language_code, proxy_model):
         login_required = indexes.BooleanField(model_attr='login_required')
         url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
         title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
+        site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
 
         def prepare(self, obj):
             current_languge = get_language()
