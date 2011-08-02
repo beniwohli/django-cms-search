@@ -62,8 +62,6 @@ def page_index_factory(language_code, proxy_model):
                 qs = qs.filter(publisher_is_draft=True)
             return qs
 
-        get_queryset = index_queryset
-
     return _PageIndex
 
 for language_code, language_name in settings.LANGUAGES:
