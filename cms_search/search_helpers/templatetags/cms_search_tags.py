@@ -33,22 +33,27 @@ class GetTransFieldTag(AsTag):
         the languages defined in `settings.LANGUAGES`.
 
         """
-        language = get_language()
-        value = self.get_translated_value(obj, field_name, language)
-        if value:
-            return value
-        if self.FALLBACK:
-            for lang, lang_name in settings.LANGUAGES:
-                if lang == language:
-                    # already tried this one...
-                    continue
-                value = self.get_translated_value(obj, field_name, lang)
-                if value:
-                    return value
-        untranslated = getattr(obj, field_name)
-        if self._is_truthy(untranslated):
-            return untranslated
-        else:
+        try:
+            language = get_language()
+            value = self.get_translated_value(obj, field_name, language)
+            if value:
+                return value
+            if self.FALLBACK:
+                for lang, lang_name in settings.LANGUAGES:
+                    if lang == language:
+                        # already tried this one...
+                        continue
+                    value = self.get_translated_value(obj, field_name, lang)
+                    if value:
+                        return value
+            untranslated = getattr(obj, field_name)
+            if self._is_truthy(untranslated):
+                return untranslated
+            else:
+                return self.EMPTY_VALUE
+        except Exception:
+            if settings.TEMPLATE_DEBUG:
+                raise
             return self.EMPTY_VALUE
 
     def get_translated_value(self, obj, field_name, language):
