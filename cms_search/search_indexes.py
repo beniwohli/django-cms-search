@@ -1,8 +1,19 @@
+import re
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode
-from django.utils.html import strip_tags
 from django.utils.translation import get_language, activate
+
+def _strip_tags(value):
+    """
+    Returns the given HTML with all tags stripped.
+
+    This is a copy of django.utils.html.strip_tags, except that it adds some
+    whitespace in between replaced tags to make sure words are not erroneously
+    concatenated.
+    """
+    return re.sub(r'<[^>]*?>', ' ', force_unicode(value))
 
 try:
     import importlib
@@ -48,9 +59,9 @@ def page_index_factory(language_code, proxy_model):
                 for plugin in plugins:
                     instance, _ = plugin.get_plugin_instance()
                     if hasattr(instance, 'search_fields'):
-                        text += u''.join(force_unicode(strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
+                        text += u''.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
                     if getattr(instance, 'search_fulltext', False):
-                        text += strip_tags(instance.render_plugin())
+                        text += _strip_tags(instance.render_plugin())
                 self.prepared_data['text'] = text
                 return self.prepared_data
             finally:
