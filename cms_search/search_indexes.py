@@ -1,9 +1,15 @@
+from django.template import RequestContext
 import re
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
+
+try:
+    from django.test.client import RequestFactoryII
+except ImportError:
+    from cms_search.utils import RequestFactory
 
 def _strip_tags(value):
     """
@@ -38,6 +44,8 @@ def _get_index_base():
         raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s is not a subclass of haystack.indexes.SearchIndex' % search_settings.INDEX_BASE_CLASS)
     return base_class
 
+rf = RequestFactory()
+
 def page_index_factory(language_code, proxy_model):
 
     class _PageIndex(_get_index_base()):
@@ -54,6 +62,8 @@ def page_index_factory(language_code, proxy_model):
             current_languge = get_language()
             try:
                 activate(self.language)
+                request = rf.get("/")
+                request.session = {}
                 self.prepared_data = super(_PageIndex, self).prepare(obj)
                 plugins = CMSPlugin.objects.filter(language=language_code, placeholder__in=obj.placeholders.all())
                 text = ''
@@ -62,7 +72,7 @@ def page_index_factory(language_code, proxy_model):
                     if hasattr(instance, 'search_fields'):
                         text += u''.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
                     if getattr(instance, 'search_fulltext', False):
-                        text += _strip_tags(instance.render_plugin())
+                        text += _strip_tags(instance.render_plugin(context=RequestContext(request)))
                 self.prepared_data['text'] = text
                 return self.prepared_data
             finally:
