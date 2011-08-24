@@ -7,7 +7,7 @@ from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
 
 try:
-    from django.test.client import RequestFactoryII
+    from django.test.client import RequestFactory
 except ImportError:
     from cms_search.utils import RequestFactory
 
