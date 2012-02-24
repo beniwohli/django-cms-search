@@ -2,6 +2,14 @@
 django-cms-search
 =================
 
+fork notes:
+=================
+This package has been modified to work with current django-haystack 2.0.0-beta in a pretty clean way.
+
+
+
+
+
 This package provides multilingual search indexes for easy Haystack integration with django CMS.
 
 Usage
