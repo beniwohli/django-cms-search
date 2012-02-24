@@ -26,29 +26,18 @@ try:
 except ImportError:
     from django.utils import importlib
 
-from haystack import indexes, site
+from haystack import indexes, connections
 
 from cms.models.pluginmodel import CMSPlugin
 
 from cms_search import models as proxy_models
 from cms_search import settings as search_settings
 
-def _get_index_base():
-    index_string = search_settings.INDEX_BASE_CLASS
-    module, class_name = index_string.rsplit('.', 1)
-    mod = importlib.import_module(module)
-    base_class = getattr(mod, class_name, None)
-    if not base_class:
-        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: module %s has no class %s' % (module, class_name))
-    if not issubclass(base_class, indexes.SearchIndex):
-        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s is not a subclass of haystack.indexes.SearchIndex' % search_settings.INDEX_BASE_CLASS)
-    return base_class
-
 rf = RequestFactory()
 
 def page_index_factory(language_code, proxy_model):
 
-    class _PageIndex(_get_index_base()):
+    class _PageIndex(indexes.SearchIndex, indexes.Indexable):
         language = language_code
 
         text = indexes.CharField(document=True, use_template=False)
@@ -78,6 +67,9 @@ def page_index_factory(language_code, proxy_model):
             finally:
                 activate(current_languge)
 
+        def get_model(self):
+            return proxy_model
+
         def index_queryset(self):
             qs = proxy_model.objects.published().filter(title_set__language=language_code).distinct()
             if 'publisher' in settings.INSTALLED_APPS:
@@ -86,10 +78,16 @@ def page_index_factory(language_code, proxy_model):
 
     return _PageIndex
 
-for language_code, language_name in settings.LANGUAGES:
-    proxy_model = getattr(proxy_models, proxy_models.proxy_name(language_code))
-    index = page_index_factory(language_code, proxy_model)
-    if proxy_model:
-        site.register(proxy_model, index)
-    else:
-        print "no page proxy model found for language %s" % language_code
+
+# we don't want the globals() style which was used in models.py ...
+def push_indices():
+    magic_indices = []
+    for language_code, language_name in settings.LANGUAGES:
+        proxy_model = getattr(proxy_models, proxy_models.proxy_name(language_code))
+        magic_indices.append( page_index_factory(language_code, proxy_model))
+        
+    unified_index = connections['default'].get_unified_index()
+    prev_indices = [index for key, index in unified_index.indexes.iteritems()]
+    all_indices = [ind() for ind in magic_indices] + prev_indices
+    unified_index.build(indexes=all_indices)
+push_indices()
