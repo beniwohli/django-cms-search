@@ -49,7 +49,8 @@ rf = RequestFactory()
 def page_index_factory(language_code, proxy_model):
 
     class _PageIndex(_get_index_base()):
-        language = language_code
+        _language = language_code
+        language = indexes.CharField()
 
         text = indexes.CharField(document=True, use_template=False)
         pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
@@ -61,7 +62,7 @@ def page_index_factory(language_code, proxy_model):
         def prepare(self, obj):
             current_languge = get_language()
             try:
-                activate(self.language)
+                activate(self._language)
                 request = rf.get("/")
                 request.session = {}
                 self.prepared_data = super(_PageIndex, self).prepare(obj)
@@ -74,6 +75,7 @@ def page_index_factory(language_code, proxy_model):
                     if getattr(instance, 'search_fulltext', False):
                         text += _strip_tags(instance.render_plugin(context=RequestContext(request)))
                 self.prepared_data['text'] = text
+                self.prepared_data['language'] = self._language
                 return self.prepared_data
             finally:
                 activate(current_languge)
