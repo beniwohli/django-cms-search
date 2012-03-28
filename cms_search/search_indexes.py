@@ -84,7 +84,9 @@ def page_index_factory(language_code, proxy_model):
                 activate(current_languge)
 
         def index_queryset(self):
-            qs = proxy_model.objects.published().filter(title_set__language=language_code).distinct()
+            # get the correct language and exclude pages that have a redirect
+            qs = proxy_model.objects.published().filter(
+                title_set__language=language_code, title_set__redirect__isnull=True).distinct()
             if 'publisher' in settings.INSTALLED_APPS:
                 qs = qs.filter(publisher_is_draft=True)
             return qs
