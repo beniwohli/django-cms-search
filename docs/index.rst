@@ -11,6 +11,15 @@ Usage
 After installing django-cms-search through your package manager of choice, add
 :mod:`cms_search` to your :setting:`INSTALLED_APPS`. That's it.
 
+.. warning::
+
+    Since version 0.5, the ``HaystackSearchApphook`` is not registered automatically
+    anymore. If you want do use the default app hook provided by django-cms-search,
+    add this (e.g. in ``models.py``)::
+
+        from cms_search.cms_app import HaystackSearchApphook
+        apphook_pool.register(HaystackSearchApphook)
+
 For setting up Haystack, please refer to their
 `documentation <http://readthedocs.org/docs/django-haystack/en/latest/>`_.
 

@@ -7,7 +7,7 @@ from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
 
 try:
-    from django.test.client import RequestFactoryII
+    from django.test.client import RequestFactory
 except ImportError:
     from cms_search.utils import RequestFactory
 
@@ -49,7 +49,8 @@ rf = RequestFactory()
 def page_index_factory(language_code, proxy_model):
 
     class _PageIndex(_get_index_base()):
-        language = language_code
+        _language = language_code
+        language = indexes.CharField()
 
         text = indexes.CharField(document=True, use_template=False)
         pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
@@ -61,25 +62,31 @@ def page_index_factory(language_code, proxy_model):
         def prepare(self, obj):
             current_languge = get_language()
             try:
-                activate(self.language)
+                activate(self._language)
                 request = rf.get("/")
                 request.session = {}
                 self.prepared_data = super(_PageIndex, self).prepare(obj)
                 plugins = CMSPlugin.objects.filter(language=language_code, placeholder__in=obj.placeholders.all())
-                text = ''
+                text = u''
                 for plugin in plugins:
                     instance, _ = plugin.get_plugin_instance()
                     if hasattr(instance, 'search_fields'):
-                        text += u''.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
+                        text += u' '.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
                     if getattr(instance, 'search_fulltext', False):
-                        text += _strip_tags(instance.render_plugin(context=RequestContext(request)))
+                        text += _strip_tags(instance.render_plugin(context=RequestContext(request))) + u' '
+                text += obj.get_meta_description() or u''
+                text += u' '
+                text += obj.get_meta_keywords() or u''
                 self.prepared_data['text'] = text
+                self.prepared_data['language'] = self._language
                 return self.prepared_data
             finally:
                 activate(current_languge)
 
         def index_queryset(self):
-            qs = proxy_model.objects.published().filter(title_set__language=language_code).distinct()
+            # get the correct language and exclude pages that have a redirect
+            qs = proxy_model.objects.published().filter(
+                title_set__language=language_code, title_set__redirect__isnull=True).distinct()
             if 'publisher' in settings.INSTALLED_APPS:
                 qs = qs.filter(publisher_is_draft=True)
             return qs
