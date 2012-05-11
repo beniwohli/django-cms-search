@@ -108,11 +108,17 @@ content.
             haystack.autodiscover()
 
 
-.. :class:: cms_search.search_helpers.fields.MultiLangTemplateField
+.. py:class:: cms_search.search_helpers.fields.MultiLangTemplateField
 
     A :class:`haystack.indexes.CharField` subclass that renders the search
     template in all languages defined in :setting:`django:LANGUAGES` and
     concatenates the result.
+
+    .. note::
+
+        If you plan to render django CMS placeholders in the template,
+        make sure to pass the ``needs_request`` argument to 
+        :meth:`cms_search.search_helpers.fields.MultiLangTemplateField`.
 
 .. templatetag:: get_translated_value
 
