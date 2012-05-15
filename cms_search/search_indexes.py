@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
+from django.db.models import Q
 
 try:
     from django.test.client import RequestFactory
@@ -85,10 +86,12 @@ def page_index_factory(language_code, proxy_model):
 
         def index_queryset(self):
             # get the correct language and exclude pages that have a redirect
-            qs = super(_PageIndex, self).index_queryset().published().filter(
-                title_set__language=language_code, title_set__redirect__isnull=True).distinct()
+            qs = super(_PageIndex, self).index_queryset()
+            qs = qs.published().filter(
+                Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
             if 'publisher' in settings.INSTALLED_APPS:
                 qs = qs.filter(publisher_is_draft=True)
+            qs = qs.distinct()
             return qs
 
     return _PageIndex
