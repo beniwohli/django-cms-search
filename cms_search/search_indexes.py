@@ -34,6 +34,16 @@ from cms.models.pluginmodel import CMSPlugin
 from cms_search import models as proxy_models
 from cms_search import settings as search_settings
 
+class PageIndex(indexes.SearchIndex):
+
+    text = indexes.CharField(document=True, use_template=False)
+    language = indexes.CharField()
+    pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
+    login_required = indexes.BooleanField(model_attr='login_required')
+    url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
+    title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
+    site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
+
 def _get_index_base():
     index_string = search_settings.INDEX_BASE_CLASS
     module, class_name = index_string.rsplit('.', 1)
@@ -51,14 +61,7 @@ def page_index_factory(language_code, proxy_model):
 
     class _PageIndex(_get_index_base()):
         _language = language_code
-        language = indexes.CharField()
 
-        text = indexes.CharField(document=True, use_template=False)
-        pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
-        login_required = indexes.BooleanField(model_attr='login_required')
-        url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
-        title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
-        site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
 
         def prepare(self, obj):
             current_languge = get_language()
