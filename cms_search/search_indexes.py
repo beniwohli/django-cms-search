@@ -53,6 +53,9 @@ def _get_index_base():
         raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: module %s has no class %s' % (module, class_name))
     if not issubclass(base_class, indexes.SearchIndex):
         raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s is not a subclass of haystack.indexes.SearchIndex' % search_settings.INDEX_BASE_CLASS)
+    required_fields = ['text', 'language']
+    if not all(field in base_class.fields for field in required_fields):
+        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s must contain at least these fields: %s' % (search_settings.INDEX_BASE_CLASS, required_fields))
     return base_class
 
 rf = RequestFactory()
