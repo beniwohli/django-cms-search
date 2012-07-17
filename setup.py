@@ -4,6 +4,7 @@ from setuptools import setup, find_packages
 
 install_requires = [
     'setuptools',
+    'Django>=1.3',
     'django-cms>=2.1.3',
     'django-classy-tags>=0.3.2',
     'django-haystack>=1.2.4',

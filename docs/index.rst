@@ -5,6 +5,14 @@ django-cms-search
 This package provides multilingual search indexes for easy Haystack integration
 with `django CMS <http://www.django-cms.org>`_.
 
+Requirements
+============
+
+ * Django >= 1.3
+ * django CMS >= 2.1.3
+ * django-haystack >= 1.2.4, < 2.0 (support for 2.0 will be a priority once it is released)
+ * django-classy-tags >= 0.3.2
+
 Usage
 =====
 
@@ -21,13 +29,13 @@ After installing django-cms-search through your package manager of choice, add
         apphook_pool.register(HaystackSearchApphook)
 
 For setting up Haystack, please refer to their
-`documentation <http://readthedocs.org/docs/django-haystack/en/latest/>`_.
+`documentation <http://django-haystack.readthedocs.org/en/v1.2.7/>`_.
 
 Customizing the Index
 ---------------------
 
 You can customize what parts of a :class:`~cms.models.CMSPlugin` end up in
-the index with two class attributes on :class:`~cms.models.CMSPlugin`
+the index with two class attributes on :class:`~cms.plugin_base.CMSPluginBase`
 subclasses:
 
 .. attribute:: search_fields
@@ -38,6 +46,15 @@ subclasses:
 
     if ``True``, the index renders the plugin and adds the result (sans HTML
     tags) to the index.
+
+    .. note::
+
+        Before version 0.6 of this library, this attributes had to be defined on
+        :class:`~cms.models.CMSPlugin`. Starting with 0.6, it can also be defined
+        on :class:`~cms.plugin_base.CMSPluginBase`, for cases where one 
+        :class:`~cms.models.CMSPlugin` subclass is used by multiple 
+        :class:`~cms.plugin_base.CMSPluginBase` subclasses with different search
+        requirements.
 
 Helpers
 =======
