@@ -1,16 +1,13 @@
-from django.template import RequestContext
 import re
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Q
+from django.template import RequestContext
+from django.test.client import RequestFactory
 from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
-from django.db.models import Q
 
-try:
-    from django.test.client import RequestFactory
-except ImportError:
-    from cms_search.utils import RequestFactory
 
 def _strip_tags(value):
     """
@@ -47,7 +44,7 @@ def _get_index_base():
 
 rf = RequestFactory()
 
-def page_index_factory(language_code, proxy_model):
+def page_index_factory(language_code):
 
     class _PageIndex(_get_index_base()):
         _language = language_code
@@ -63,17 +60,19 @@ def page_index_factory(language_code, proxy_model):
         def prepare(self, obj):
             current_languge = get_language()
             try:
-                activate(self._language)
+                if current_languge != self._language:
+                    activate(self._language)
                 request = rf.get("/")
                 request.session = {}
+                request.LANGUAGE_CODE = self._language
                 self.prepared_data = super(_PageIndex, self).prepare(obj)
                 plugins = CMSPlugin.objects.filter(language=language_code, placeholder__in=obj.placeholders.all())
                 text = u''
-                for plugin in plugins:
-                    instance, _ = plugin.get_plugin_instance()
+                for base_plugin in plugins:
+                    instance, plugin_type = base_plugin.get_plugin_instance()
                     if hasattr(instance, 'search_fields'):
                         text += u' '.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
-                    if getattr(instance, 'search_fulltext', False):
+                    if getattr(instance, 'search_fulltext', False) or getattr(plugin_type, 'search_fulltext', False):
                         text += _strip_tags(instance.render_plugin(context=RequestContext(request))) + u' '
                 text += obj.get_meta_description() or u''
                 text += u' '
@@ -82,7 +81,8 @@ def page_index_factory(language_code, proxy_model):
                 self.prepared_data['language'] = self._language
                 return self.prepared_data
             finally:
-                activate(current_languge)
+                if get_language() != current_languge:
+                    activate(current_languge)
 
         def index_queryset(self):
             # get the correct language and exclude pages that have a redirect
@@ -98,7 +98,7 @@ def page_index_factory(language_code, proxy_model):
 
 for language_code, language_name in settings.LANGUAGES:
     proxy_model = getattr(proxy_models, proxy_models.proxy_name(language_code))
-    index = page_index_factory(language_code, proxy_model)
+    index = page_index_factory(language_code)
     if proxy_model:
         site.register(proxy_model, index)
     else:
