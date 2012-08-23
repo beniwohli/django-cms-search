@@ -70,6 +70,9 @@ def page_index_factory(language_code):
                 text = u''
                 for base_plugin in plugins:
                     instance, plugin_type = base_plugin.get_plugin_instance()
+                    if instance is None:
+                        # this is an empty plugin
+                        continue
                     if hasattr(instance, 'search_fields'):
                         text += u' '.join(force_unicode(_strip_tags(getattr(instance, field, ''))) for field in instance.search_fields)
                     if getattr(instance, 'search_fulltext', False) or getattr(plugin_type, 'search_fulltext', False):
