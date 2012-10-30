@@ -175,3 +175,12 @@ Default: :class:`haystack.indexes.SearchIndex <haystack:SearchIndex>`
 This setting can be used to add custom fields to the search index if the
 included fields do not suffice. Make sure to provide the full path
 to your :class:`haystack:SearchIndex` subclass.
+
+
+.. setting: CMS_SEARCH_SITES
+
+CMS_SEARCH_SITES
+----------------
+Default: ``[1]``
+
+A list of ``Site`` ids that should be indexed. By default only the site with id ``1`` will be added.
