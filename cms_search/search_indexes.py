@@ -7,6 +7,8 @@ from django.template import RequestContext
 from django.test.client import RequestFactory
 from django.utils.encoding import force_unicode
 from django.utils.translation import get_language, activate
+from django.contrib.sites.models import Site
+from cms_search.models import CMS_SEARCH_SITES
 
 
 def _strip_tags(value):
@@ -44,8 +46,7 @@ def _get_index_base():
 
 rf = RequestFactory()
 
-def page_index_factory(language_code):
-
+def page_index_factory(language_code, site_id):
     class _PageIndex(_get_index_base()):
         _language = language_code
         language = indexes.CharField()
@@ -90,7 +91,7 @@ def page_index_factory(language_code):
         def index_queryset(self):
             # get the correct language and exclude pages that have a redirect
             qs = super(_PageIndex, self).index_queryset()
-            qs = qs.published().filter(
+            qs = qs.published(site=site_id).filter(
                 Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
             if 'publisher' in settings.INSTALLED_APPS:
                 qs = qs.filter(publisher_is_draft=True)
@@ -99,10 +100,11 @@ def page_index_factory(language_code):
 
     return _PageIndex
 
-for language_code, language_name in settings.LANGUAGES:
-    proxy_model = getattr(proxy_models, proxy_models.proxy_name(language_code))
-    index = page_index_factory(language_code)
-    if proxy_model:
-        site.register(proxy_model, index)
-    else:
-        print "no page proxy model found for language %s" % language_code
+for site_id in CMS_SEARCH_SITES:
+    for language_code, language_name in settings.LANGUAGES:
+        proxy_model = getattr(proxy_models, proxy_models.proxy_name(language_code, site_id))
+        index = page_index_factory(language_code, site_id=site_id)
+        if proxy_model:
+            site.register(proxy_model, index)
+        else:
+            print "no page proxy model found for language %s" % language_code
