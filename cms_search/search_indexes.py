@@ -2,7 +2,9 @@ import re
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.contrib.sites.models import Site
 from django.db.models import Q
+from django.db.models.query import EmptyQuerySet
 from django.template import RequestContext
 from django.test.client import RequestFactory
 from django.utils.encoding import force_unicode
@@ -58,6 +60,7 @@ def page_index_factory(language_code):
         site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
 
         def prepare(self, obj):
+            print obj.id, obj.site_id, obj
             current_languge = get_language()
             try:
                 if current_languge != self._language:
@@ -89,13 +92,16 @@ def page_index_factory(language_code):
 
         def index_queryset(self):
             # get the correct language and exclude pages that have a redirect
-            qs = super(_PageIndex, self).index_queryset()
-            qs = qs.published().filter(
-                Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
-            if 'publisher' in settings.INSTALLED_APPS:
-                qs = qs.filter(publisher_is_draft=True)
-            qs = qs.distinct()
-            return qs
+            base_qs = super(_PageIndex, self).index_queryset()
+            result_qs = EmptyQuerySet()
+            for site_obj in Site.objects.all():
+                qs = base_qs.published(site=site_obj.id).filter(
+                    Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
+                if 'publisher' in settings.INSTALLED_APPS:
+                    qs = qs.filter(publisher_is_draft=True)
+                qs = qs.distinct()
+                result_qs |= qs
+            return result_qs
 
     return _PageIndex
 
