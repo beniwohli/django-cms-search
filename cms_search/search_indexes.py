@@ -60,7 +60,6 @@ def page_index_factory(language_code):
         site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
 
         def prepare(self, obj):
-            print obj.id, obj.site_id, obj
             current_languge = get_language()
             try:
                 if current_languge != self._language:
