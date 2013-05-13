@@ -29,7 +29,7 @@ After installing django-cms-search through your package manager of choice, add
         apphook_pool.register(HaystackSearchApphook)
 
 Configure Haystack, please refer to their
-`documentation <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#configuration>`_ and follow all steps under "Configuration". Add a `search site <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#create-a-searchsite>`_ and `search template <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#search-template>`_ (This app handles the SearchIndex for you and the CMS itself handles the URLs so you can skip those steps.)
+`documentation <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#configuration>`_ and follow all steps under "Configuration". Add a `search site <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#create-a-searchsite>`_ and `search template <http://django-haystack.readthedocs.org/en/v1.2.7/tutorial.html#search-template>`_. (This app handles the SearchIndex for you and the CMS itself handles the URLs so you can skip those steps.)
 
 To add a search results page add a new page to the CMS. Give it a title. Set the status to: "published". Set the template to: "inherit the template of the nearest ancestor". Set the application (under advanced settings) to" "search apphook". Save.
 
