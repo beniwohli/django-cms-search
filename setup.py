@@ -7,7 +7,7 @@ install_requires = [
     'Django>=1.3',
     'django-cms>=2.1.3',
     'django-classy-tags>=0.3.2',
-    'django-haystack>=1.2.4',
+    'django-haystack>=1.2.4,<2.0.0',
 ]
 
 setup(
