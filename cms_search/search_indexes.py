@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 import re
 
 from django.conf import settings
@@ -28,6 +29,7 @@ except ImportError:
 
 from haystack import indexes, site
 
+import cms
 from cms.models.pluginmodel import CMSPlugin
 
 from cms_search import models as proxy_models
@@ -81,7 +83,7 @@ def page_index_factory(language_code):
                         text += _strip_tags(instance.render_plugin(context=RequestContext(request))) + u' '
                 text += obj.get_meta_description() or u''
                 text += u' '
-                text += obj.get_meta_keywords() or u''
+                text += obj.get_meta_keywords() if hasattr(obj, 'get_meta_keywords') else u''
                 self.prepared_data['text'] = text
                 self.prepared_data['language'] = self._language
                 return self.prepared_data
@@ -96,8 +98,8 @@ def page_index_factory(language_code):
             for site_obj in Site.objects.all():
                 qs = base_qs.published(site=site_obj.id).filter(
                     Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
-                if 'publisher' in settings.INSTALLED_APPS:
-                    qs = qs.filter(publisher_is_draft=True)
+                if 'publisher' in settings.INSTALLED_APPS or LooseVersion(cms.__version__) >= LooseVersion('2.4'):
+                    qs = qs.filter(publisher_is_draft=False)
                 qs = qs.distinct()
                 result_qs |= qs
             return result_qs
