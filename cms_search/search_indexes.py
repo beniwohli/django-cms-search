@@ -4,7 +4,6 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.contrib.sites.models import Site
 from django.db.models import Q
-from django.db.models.query import EmptyQuerySet
 from django.template import RequestContext
 from django.test.client import RequestFactory
 from django.utils.encoding import force_unicode
@@ -92,7 +91,7 @@ def page_index_factory(language_code):
         def index_queryset(self):
             # get the correct language and exclude pages that have a redirect
             base_qs = super(_PageIndex, self).index_queryset()
-            result_qs = EmptyQuerySet()
+            result_qs = base_qs.none()
             for site_obj in Site.objects.all():
                 qs = base_qs.published(site=site_obj.id).filter(
                     Q(title_set__language=language_code) & (Q(title_set__redirect__exact='') | Q(title_set__redirect__isnull=True)))
