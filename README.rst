@@ -2,6 +2,11 @@
 django-cms-search
 =================
 
+.. warning::
+
+    This package is deprecated. Please use its successor,
+    `aldryn-search <https://github.com/aldryn/aldryn-search>`_
+
 This package provides multilingual search indexes for easy Haystack integration with django CMS.
 
 Usage
