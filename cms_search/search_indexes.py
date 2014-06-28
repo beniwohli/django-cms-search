@@ -33,6 +33,16 @@ from cms.models.pluginmodel import CMSPlugin
 from cms_search import models as proxy_models
 from cms_search import settings as search_settings
 
+class PageIndex(indexes.SearchIndex):
+
+    text = indexes.CharField(document=True, use_template=False)
+    language = indexes.CharField()
+    pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
+    login_required = indexes.BooleanField(model_attr='login_required')
+    url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
+    title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
+    site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
+
 def _get_index_base():
     index_string = search_settings.INDEX_BASE_CLASS
     module, class_name = index_string.rsplit('.', 1)
@@ -42,6 +52,9 @@ def _get_index_base():
         raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: module %s has no class %s' % (module, class_name))
     if not issubclass(base_class, indexes.SearchIndex):
         raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s is not a subclass of haystack.indexes.SearchIndex' % search_settings.INDEX_BASE_CLASS)
+    required_fields = ['text', 'language']
+    if not all(field in base_class.fields for field in required_fields):
+        raise ImproperlyConfigured('CMS_SEARCH_INDEX_BASE_CLASS: %s must contain at least these fields: %s' % (search_settings.INDEX_BASE_CLASS, required_fields))
     return base_class
 
 rf = RequestFactory()
@@ -50,14 +63,7 @@ def page_index_factory(language_code):
 
     class _PageIndex(_get_index_base()):
         _language = language_code
-        language = indexes.CharField()
 
-        text = indexes.CharField(document=True, use_template=False)
-        pub_date = indexes.DateTimeField(model_attr='publication_date', null=True)
-        login_required = indexes.BooleanField(model_attr='login_required')
-        url = indexes.CharField(stored=True, indexed=False, model_attr='get_absolute_url')
-        title = indexes.CharField(stored=True, indexed=False, model_attr='get_title')
-        site_id = indexes.IntegerField(stored=True, indexed=True, model_attr='site_id')
 
         def prepare(self, obj):
             current_languge = get_language()
